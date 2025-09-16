@@ -1,276 +1,133 @@
+let records = [];
 
-// Library Management System JavaScript
+// Handle form submission
+document.getElementById("bookForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-let libraryRecords = [];
-let recordIdCounter = 1;
+  let studentName = document.getElementById("studentName").value;
+  let bookName = document.getElementById("bookName").value;
+  let serialNumber = document.getElementById("serialNumber").value;
+  let issueDate = document.getElementById("issueDate").value;
+  let returnDate = document.getElementById("returnDate").value;
 
-// Load records from localStorage on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadRecordsFromStorage();
-    updateStats();
-    displayRecords();
-    
-    // Set today's date as default for issue date
-    document.getElementById('issueDate').valueAsDate = new Date();
-    
-    // Set default return date (2 weeks from today)
-    const returnDate = new Date();
-    returnDate.setDate(returnDate.getDate() + 14);
-    document.getElementById('returnDate').valueAsDate = returnDate;
+  addRecord(studentName, bookName, serialNumber, issueDate, returnDate);
+  this.reset();
 });
 
-// Form submission handler
-document.getElementById('bookForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const studentName = document.getElementById('studentName').value.trim();
-    const bookName = document.getElementById('bookName').value.trim();
-    const serialNumber = document.getElementById('serialNumber').value.trim();
-    const issueDate = document.getElementById('issueDate').value;
-    const returnDate = document.getElementById('returnDate').value;
-    
-    // Validation
-    if (!studentName || !bookName || !serialNumber || !issueDate || !returnDate) {
-        alert('Please fill in all fields');
-        return;
-    }
-    
-    // Check if serial number already exists for issued books
-    const existingRecord = libraryRecords.find(record => 
-        record.serialNumber === serialNumber && record.status === 'issued'
-    );
-    
-    if (existingRecord) {
-        alert('This book is already issued. Serial number must be unique for issued books.');
-        return;
-    }
-    
-    // Validate dates
-    if (new Date(returnDate) <= new Date(issueDate)) {
-        alert('Return date must be after issue date');
-        return;
-    }
-    
-    // Create new record
-    const newRecord = {
-        id: recordIdCounter++,
-        studentName: studentName,
-        bookName: bookName,
-        serialNumber: serialNumber,
-        issueDate: issueDate,
-        returnDate: returnDate,
-        status: 'issued',
-        actualReturnDate: null
-    };
-    
-    libraryRecords.push(newRecord);
-    saveRecordsToStorage();
-    updateStats();
-    displayRecords();
-    
-    // Reset form
-    document.getElementById('bookForm').reset();
-    
-    // Set default dates again
-    document.getElementById('issueDate').valueAsDate = new Date();
-    const newReturnDate = new Date();
-    newReturnDate.setDate(newReturnDate.getDate() + 14);
-    document.getElementById('returnDate').valueAsDate = newReturnDate;
-    
-    alert('Book issued successfully!');
-});
+// Add new record
+function addRecord(student, book, serial, issue, returnDate) {
+  let record = {
+    student,
+    book,
+    serial,
+    issue,
+    returnDate,
+    status: "Issued"
+  };
 
-// Display records in table
-function displayRecords(recordsToShow = libraryRecords) {
-    const tbody = document.getElementById('recordsBody');
-    tbody.innerHTML = '';
-    
-    if (recordsToShow.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #666;">No records found</td></tr>';
-        return;
-    }
-    
-    recordsToShow.forEach(record => {
-        const row = document.createElement('tr');
-        
-        // Determine status
-        let status = record.status;
-        let statusClass = record.status;
-        
-        if (record.status === 'issued') {
-            const today = new Date();
-            const returnDate = new Date(record.returnDate);
-            if (today > returnDate) {
-                status = 'overdue';
-                statusClass = 'overdue';
-            }
-        }
-        
-        row.innerHTML = `
-            <td>${record.studentName}</td>
-            <td>${record.bookName}</td>
-            <td>${record.serialNumber}</td>
-            <td>${formatDate(record.issueDate)}</td>
-            <td>${formatDate(record.returnDate)}</td>
-            <td><span class="status ${statusClass}">${status}</span></td>
-            <td>
-                ${record.status === 'issued' ? 
-                    `<button class="action-btn return-btn" onclick="returnBook(${record.id})">Return</button>` : 
-                    `<span style="color: #28a745;">✓ Returned on ${formatDate(record.actualReturnDate)}</span>`
-                }
-                <button class="action-btn delete-btn" onclick="deleteRecord(${record.id})">Delete</button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
+  records.push(record);
+  updateTable();
+  updateStats();
+  updateStudentList();
 }
 
-// Return book function
-function returnBook(recordId) {
-    const record = libraryRecords.find(r => r.id === recordId);
-    if (record) {
-        const confirmReturn = confirm(`Return book "${record.bookName}" issued to ${record.studentName}?`);
-        if (confirmReturn) {
-            record.status = 'returned';
-            record.actualReturnDate = new Date().toISOString().split('T')[0];
-            saveRecordsToStorage();
-            updateStats();
-            displayRecords();
-            alert('Book returned successfully!');
-        }
-    }
+// Update main records table
+function updateTable(filteredRecords = records) {
+  let tbody = document.getElementById("recordsBody");
+  tbody.innerHTML = "";
+
+  filteredRecords.forEach((rec, index) => {
+    let row = `
+      <tr>
+        <td><a href="#" onclick="showStudentDetails('${rec.student}')">${rec.student}</a></td>
+        <td>${rec.book}</td>
+        <td>${rec.serial}</td>
+        <td>${rec.issue}</td>
+        <td>${rec.returnDate}</td>
+        <td>${rec.status}</td>
+        <td>
+          <button onclick="markReturned(${index})">Return</button>
+          <button onclick="deleteRecord(${index})">Delete</button>
+        </td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
 }
 
-// Delete record function
-function deleteRecord(recordId) {
-    const record = libraryRecords.find(r => r.id === recordId);
-    if (record) {
-        const confirmDelete = confirm(`Delete record for "${record.bookName}" issued to ${record.studentName}?`);
-        if (confirmDelete) {
-            libraryRecords = libraryRecords.filter(r => r.id !== recordId);
-            saveRecordsToStorage();
-            updateStats();
-            displayRecords();
-            alert('Record deleted successfully!');
-        }
-    }
+// Mark book returned
+function markReturned(index) {
+  records[index].status = "Returned";
+  updateTable();
+  updateStats();
 }
 
-// Search functionality
+// Delete a record
+function deleteRecord(index) {
+  records.splice(index, 1);
+  updateTable();
+  updateStats();
+  updateStudentList();
+}
+
+// Search records
 function searchRecords() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    
-    if (searchTerm === '') {
-        displayRecords();
-        return;
-    }
-    
-    const filteredRecords = libraryRecords.filter(record => 
-        record.studentName.toLowerCase().includes(searchTerm) ||
-        record.bookName.toLowerCase().includes(searchTerm) ||
-        record.serialNumber.toLowerCase().includes(searchTerm)
-    );
-    
-    displayRecords(filteredRecords);
+  let query = document.getElementById("searchInput").value.toLowerCase();
+  let filtered = records.filter(r =>
+    r.student.toLowerCase().includes(query) ||
+    r.book.toLowerCase().includes(query)
+  );
+  updateTable(filtered);
 }
 
 // Show all records
 function showAllRecords() {
-    document.getElementById('searchInput').value = '';
-    displayRecords();
+  updateTable();
 }
 
-// Update statistics
+// Update stats
 function updateStats() {
-    const totalBooks = libraryRecords.length;
-    const activeBooks = libraryRecords.filter(r => r.status === 'issued').length;
-    const returnedBooks = libraryRecords.filter(r => r.status === 'returned').length;
-    
-    // Calculate overdue books
-    const today = new Date();
-    const overdueBooks = libraryRecords.filter(r => {
-        if (r.status === 'issued') {
-            const returnDate = new Date(r.returnDate);
-            return today > returnDate;
-        }
-        return false;
-    }).length;
-    
-    document.getElementById('totalBooks').textContent = totalBooks;
-    document.getElementById('activeBooks').textContent = activeBooks;
-    document.getElementById('returnedBooks').textContent = returnedBooks;
-    document.getElementById('overdueBooks').textContent = overdueBooks;
+  let total = records.length;
+  let active = records.filter(r => r.status === "Issued").length;
+  let returned = records.filter(r => r.status === "Returned").length;
+
+  let today = new Date().toISOString().split("T")[0];
+  let overdue = records.filter(r => r.status === "Issued" && r.returnDate < today).length;
+
+  document.getElementById("totalBooks").innerText = total;
+  document.getElementById("activeBooks").innerText = active;
+  document.getElementById("returnedBooks").innerText = returned;
+  document.getElementById("overdueBooks").innerText = overdue;
 }
 
-// Format date for display
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+// =================== NEW FEATURE ===================
+// Student details section
+function updateStudentList() {
+  let students = [...new Set(records.map(r => r.student))]; // unique student names
+  let select = document.getElementById("studentSelect");
+  select.innerHTML = `<option value="">-- Select Student --</option>`;
+  students.forEach(s => {
+    select.innerHTML += `<option value="${s}">${s}</option>`;
+  });
 }
 
-// Save records to localStorage
-function saveRecordsToStorage() {
-    localStorage.setItem('libraryRecords', JSON.stringify(libraryRecords));
-    localStorage.setItem('recordIdCounter', recordIdCounter.toString());
+function showStudentDetails(studentName) {
+  let studentRecords = records.filter(r => r.student === studentName);
+  let tbody = document.getElementById("studentRecordsBody");
+  tbody.innerHTML = "";
+
+  studentRecords.forEach(rec => {
+    let row = `
+      <tr>
+        <td>${rec.book}</td>
+        <td>${rec.serial}</td>
+        <td>${rec.issue}</td>
+        <td>${rec.returnDate}</td>
+        <td>${rec.status}</td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
+
+  document.getElementById("studentDetailsSection").style.display = "block";
 }
-
-// Load records from localStorage
-function loadRecordsFromStorage() {
-    const savedRecords = localStorage.getItem('libraryRecords');
-    const savedCounter = localStorage.getItem('recordIdCounter');
-    
-    if (savedRecords) {
-        libraryRecords = JSON.parse(savedRecords);
-    }
-    
-    if (savedCounter) {
-        recordIdCounter = parseInt(savedCounter);
-    }
-}
-
-// Add search on Enter key
-document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        searchRecords();
-    }
-});
-
-// Sample data function for testing (you can remove this)
-function addSampleData() {
-    const sampleRecords = [
-        {
-            id: recordIdCounter++,
-            studentName: "John Doe",
-            bookName: "Data Structures and Algorithms",
-            serialNumber: "CS001",
-            issueDate: "2024-01-15",
-            returnDate: "  ",
-            status: "returned",
-            actualReturnDate: "2024-01-28"
-        },
-        {
-            id: recordIdCounter++,
-            studentName: "Jane Smith",
-            bookName: "Introduction to Machine Learning",
-            serialNumber: "CS002",
-            issueDate: "2024-01-20",
-            returnDate: "  ",
-            status: "issued",
-            actualReturnDate: null
-        }
-    ];
-    
-    libraryRecords.push(...sampleRecords);
-    saveRecordsToStorage();
-    updateStats();
-    displayRecords();
-}
-
-// Uncomment the line below to add sample data for testing
-// addSampleData();
