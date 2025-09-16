@@ -100,7 +100,7 @@
 
   <!-- Form to add student/book -->
   <div class="form-section">
-    <h3>Add Student & Book</h3>
+    <h3>Issue / Return Book</h3>
     <label>Student Name:</label><br>
     <input type="text" id="newStudentName" placeholder="Enter student name"><br>
 
@@ -116,10 +116,13 @@
     <label>Return Date:</label><br>
     <input type="date" id="newReturnDate"><br>
 
-    <label>Status:</label><br>
-    <input type="text" id="newStatus" placeholder="Issued / Returned"><br>
+    <label>Status (Issued or Returned):</label><br>
+    <select id="newStatus">
+      <option value="Issued">Issued</option>
+      <option value="Returned">Returned</option>
+    </select><br>
 
-    <button onclick="addStudentBook()">Add Record</button>
+    <button onclick="processBook()">Submit</button>
   </div>
 </div>
 
@@ -127,7 +130,6 @@
   // Student data object
   const studentsData = {};
 
-  // Populate dropdown initially
   const studentSelect = document.getElementById("studentSelect");
 
   // Show student records
@@ -150,21 +152,21 @@
     }
   }
 
-  // Add new student/book record
-  function addStudentBook() {
+  // Add or remove book record based on status
+  function processBook() {
     const name = document.getElementById("newStudentName").value.trim();
     const book = document.getElementById("newBookName").value.trim();
     const serial = document.getElementById("newSerialNumber").value.trim();
     const issue = document.getElementById("newIssueDate").value;
     const ret = document.getElementById("newReturnDate").value;
-    const status = document.getElementById("newStatus").value.trim();
+    const status = document.getElementById("newStatus").value;
 
     if (!name || !book || !serial) {
       alert("Please enter at least student name, book name and serial number!");
       return;
     }
 
-    // Add student if not exist
+    // Ensure student exists
     if (!studentsData[name]) {
       studentsData[name] = [];
       // Add to dropdown
@@ -174,16 +176,23 @@
       studentSelect.appendChild(option);
     }
 
-    // Add book record
-    studentsData[name].push({
-      book: book,
-      serial: serial,
-      issue: issue,
-      return: ret,
-      status: status
-    });
+    if (status === "Issued") {
+      // Add new record
+      studentsData[name].push({
+        book: book,
+        serial: serial,
+        issue: issue,
+        return: ret,
+        status: "Issued"
+      });
+      alert("Book issued successfully.");
+    } else if (status === "Returned") {
+      // Remove record by serial number
+      studentsData[name] = studentsData[name].filter(record => record.serial !== serial);
+      alert("Book returned successfully (record removed).");
+    }
 
-    // Show records immediately if current student selected
+    // Update table
     if (studentSelect.value === name) {
       showStudentDetails(name);
     }
@@ -194,7 +203,6 @@
     document.getElementById("newSerialNumber").value = "";
     document.getElementById("newIssueDate").value = "";
     document.getElementById("newReturnDate").value = "";
-    document.getElementById("newStatus").value = "";
   }
 </script>
 
