@@ -10,7 +10,6 @@
       background: #f2f2f2;
       padding: 20px;
     }
-
     .student-details-section {
       background: #fff;
       padding: 20px;
@@ -19,53 +18,23 @@
       width: 90%;
       margin: auto;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
     }
-
     th, td {
       border: 1px solid #ddd;
       padding: 10px;
       text-align: center;
     }
-
     th {
       background: #007bff;
       color: #fff;
     }
-
-    select, input {
-      padding: 6px;
-      margin-top: 5px;
-      margin-bottom: 10px;
-    }
-
-    .form-section {
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #f9f9f9;
-    }
-
-    .form-section h3 {
-      margin-top: 0;
-    }
-
-    button {
-      padding: 8px 12px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056b3;
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
     }
   </style>
 </head>
@@ -74,7 +43,7 @@
 <div class="student-details-section" id="studentDetailsSection">
   <h2>Student Book Details</h2>
   
-  <!-- Dropdown for selecting student -->
+  <!-- Select Student -->
   <div>
     <label for="studentSelect">Select Student: </label>
     <select id="studentSelect" onchange="showStudentDetails(this.value)">
@@ -82,7 +51,30 @@
     </select>
   </div>
 
-  <!-- Table for student book details -->
+  <!-- Issue Book Form -->
+  <h3>Issue a Book</h3>
+  <div>
+    <label>Serial No:</label>
+    <input type="text" id="serialInput" placeholder="Enter Serial No" oninput="autoFillBookName()">
+
+    <label>Book Name:</label>
+    <input type="text" id="bookNameInput" placeholder="Auto filled" readonly>
+
+    <label>Issue Date:</label>
+    <input type="date" id="issueDateInput">
+
+    <label>Return Date:</label>
+    <input type="date" id="returnDateInput">
+
+    <label>Status:</label>
+    <select id="statusInput">
+      <option value="Issued">Issued</option>
+      <option value="Returned">Returned</option>
+    </select>
+
+    <button onclick="issueBook()">Add Book to Student</button>
+  </div>
+
   <table>
     <thead>
       <tr>
@@ -97,45 +89,80 @@
       <!-- Student's records will appear here -->
     </tbody>
   </table>
-
-  <!-- Form to add student/book -->
-  <div class="form-section">
-    <h3>Issue / Return Book</h3>
-    <label>Student Name:</label><br>
-    <input type="text" id="newStudentName" placeholder="Enter student name"><br>
-
-    <label>Book Name:</label><br>
-    <input type="text" id="newBookName" placeholder="Enter book name"><br>
-
-    <label>Serial Number:</label><br>
-    <input type="text" id="newSerialNumber" placeholder="Enter serial number"><br>
-
-    <label>Issue Date:</label><br>
-    <input type="date" id="newIssueDate"><br>
-
-    <label>Return Date:</label><br>
-    <input type="date" id="newReturnDate"><br>
-
-    <label>Status (Issued or Returned):</label><br>
-    <select id="newStatus">
-      <option value="Issued">Issued</option>
-      <option value="Returned">Returned</option>
-    </select><br>
-
-    <button onclick="processBook()">Submit</button>
-  </div>
 </div>
 
 <script>
-  // Student data object
-  const studentsData = {};
+  // 📚 Master Library Records (all books in college)
+  const libraryRecords = {
+    "B101": { book: "Mathematics" },
+    "B102": { book: "Science" },
+    "B201": { book: "English" },
+    "B301": { book: "Physics" },
+    "B302": { book: "Chemistry" }
+  };
 
+  // Students Data (books issued)
+  const studentsData = {
+    "John Doe": [],
+    "Jane Smith": [],
+    "Rahul Kumar": []
+  };
+
+  // Populate dropdown
   const studentSelect = document.getElementById("studentSelect");
+  for (const studentName in studentsData) {
+    const option = document.createElement("option");
+    option.value = studentName;
+    option.textContent = studentName;
+    studentSelect.appendChild(option);
+  }
+
+  // Auto fill Book Name from Serial Number
+  function autoFillBookName() {
+    const serial = document.getElementById("serialInput").value;
+    const bookField = document.getElementById("bookNameInput");
+    if (libraryRecords[serial]) {
+      bookField.value = libraryRecords[serial].book;
+    } else {
+      bookField.value = "";
+    }
+  }
+
+  // Add book to student's record
+  function issueBook() {
+    const studentName = document.getElementById("studentSelect").value;
+    const serial = document.getElementById("serialInput").value;
+    const bookName = document.getElementById("bookNameInput").value;
+    const issueDate = document.getElementById("issueDateInput").value;
+    const returnDate = document.getElementById("returnDateInput").value;
+    const status = document.getElementById("statusInput").value;
+
+    if (!studentName || !serial || !bookName) {
+      alert("Please select a student and valid serial no.");
+      return;
+    }
+
+    studentsData[studentName].push({
+      book: bookName,
+      serial: serial,
+      issue: issueDate,
+      return: returnDate,
+      status: status
+    });
+
+    showStudentDetails(studentName);
+
+    // Clear form
+    document.getElementById("serialInput").value = "";
+    document.getElementById("bookNameInput").value = "";
+    document.getElementById("issueDateInput").value = "";
+    document.getElementById("returnDateInput").value = "";
+  }
 
   // Show student records
   function showStudentDetails(studentName) {
     const tbody = document.getElementById("studentRecordsBody");
-    tbody.innerHTML = ""; // clear old records
+    tbody.innerHTML = "";
 
     if (studentName && studentsData[studentName]) {
       studentsData[studentName].forEach(record => {
@@ -150,59 +177,6 @@
         tbody.appendChild(row);
       });
     }
-  }
-
-  // Add or remove book record based on status
-  function processBook() {
-    const name = document.getElementById("newStudentName").value.trim();
-    const book = document.getElementById("newBookName").value.trim();
-    const serial = document.getElementById("newSerialNumber").value.trim();
-    const issue = document.getElementById("newIssueDate").value;
-    const ret = document.getElementById("newReturnDate").value;
-    const status = document.getElementById("newStatus").value;
-
-    if (!name || !book || !serial) {
-      alert("Please enter at least student name, book name and serial number!");
-      return;
-    }
-
-    // Ensure student exists
-    if (!studentsData[name]) {
-      studentsData[name] = [];
-      // Add to dropdown
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      studentSelect.appendChild(option);
-    }
-
-    if (status === "Issued") {
-      // Add new record
-      studentsData[name].push({
-        book: book,
-        serial: serial,
-        issue: issue,
-        return: ret,
-        status: "Issued"
-      });
-      alert("Book issued successfully.");
-    } else if (status === "Returned") {
-      // Remove record by serial number
-      studentsData[name] = studentsData[name].filter(record => record.serial !== serial);
-      alert("Book returned successfully (record removed).");
-    }
-
-    // Update table
-    if (studentSelect.value === name) {
-      showStudentDetails(name);
-    }
-
-    // Clear form
-    document.getElementById("newStudentName").value = "";
-    document.getElementById("newBookName").value = "";
-    document.getElementById("newSerialNumber").value = "";
-    document.getElementById("newIssueDate").value = "";
-    document.getElementById("newReturnDate").value = "";
   }
 </script>
 
