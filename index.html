@@ -16,7 +16,7 @@
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 80%;
+      width: 90%;
       margin: auto;
     }
 
@@ -37,9 +37,35 @@
       color: #fff;
     }
 
-    select {
+    select, input {
       padding: 6px;
       margin-top: 5px;
+      margin-bottom: 10px;
+    }
+
+    .form-section {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+
+    .form-section h3 {
+      margin-top: 0;
+    }
+
+    button {
+      padding: 8px 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
     }
   </style>
 </head>
@@ -48,6 +74,7 @@
 <div class="student-details-section" id="studentDetailsSection">
   <h2>Student Book Details</h2>
   
+  <!-- Dropdown for selecting student -->
   <div>
     <label for="studentSelect">Select Student: </label>
     <select id="studentSelect" onchange="showStudentDetails(this.value)">
@@ -55,6 +82,7 @@
     </select>
   </div>
 
+  <!-- Table for student book details -->
   <table>
     <thead>
       <tr>
@@ -69,31 +97,38 @@
       <!-- Student's records will appear here -->
     </tbody>
   </table>
+
+  <!-- Form to add student/book -->
+  <div class="form-section">
+    <h3>Add Student & Book</h3>
+    <label>Student Name:</label><br>
+    <input type="text" id="newStudentName" placeholder="Enter student name"><br>
+
+    <label>Book Name:</label><br>
+    <input type="text" id="newBookName" placeholder="Enter book name"><br>
+
+    <label>Serial Number:</label><br>
+    <input type="text" id="newSerialNumber" placeholder="Enter serial number"><br>
+
+    <label>Issue Date:</label><br>
+    <input type="date" id="newIssueDate"><br>
+
+    <label>Return Date:</label><br>
+    <input type="date" id="newReturnDate"><br>
+
+    <label>Status:</label><br>
+    <input type="text" id="newStatus" placeholder="Issued / Returned"><br>
+
+    <button onclick="addStudentBook()">Add Record</button>
+  </div>
 </div>
 
 <script>
-  // Example student data
-  const studentsData = {
-    "John Doe": [
-      { book: "Mathematics", serial: "B101", issue: "2025-09-10", return: "2025-09-20", status: "Returned" },
-      { book: "Science", serial: "B102", issue: "2025-09-12", return: "2025-09-22", status: "Issued" }
-    ],
-    "Jane Smith": [
-      { book: "English", serial: "B201", issue: "2025-09-08", return: "2025-09-18", status: "Returned" }
-    ],
-    "Rahul Kumar": [
-      { book: "Physics", serial: "B301", issue: "2025-09-15", return: "2025-09-25", status: "Issued" }
-    ]
-  };
+  // Student data object
+  const studentsData = {};
 
-  // Populate dropdown
+  // Populate dropdown initially
   const studentSelect = document.getElementById("studentSelect");
-  for (const studentName in studentsData) {
-    const option = document.createElement("option");
-    option.value = studentName;
-    option.textContent = studentName;
-    studentSelect.appendChild(option);
-  }
 
   // Show student records
   function showStudentDetails(studentName) {
@@ -114,8 +149,54 @@
       });
     }
   }
+
+  // Add new student/book record
+  function addStudentBook() {
+    const name = document.getElementById("newStudentName").value.trim();
+    const book = document.getElementById("newBookName").value.trim();
+    const serial = document.getElementById("newSerialNumber").value.trim();
+    const issue = document.getElementById("newIssueDate").value;
+    const ret = document.getElementById("newReturnDate").value;
+    const status = document.getElementById("newStatus").value.trim();
+
+    if (!name || !book || !serial) {
+      alert("Please enter at least student name, book name and serial number!");
+      return;
+    }
+
+    // Add student if not exist
+    if (!studentsData[name]) {
+      studentsData[name] = [];
+      // Add to dropdown
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      studentSelect.appendChild(option);
+    }
+
+    // Add book record
+    studentsData[name].push({
+      book: book,
+      serial: serial,
+      issue: issue,
+      return: ret,
+      status: status
+    });
+
+    // Show records immediately if current student selected
+    if (studentSelect.value === name) {
+      showStudentDetails(name);
+    }
+
+    // Clear form
+    document.getElementById("newStudentName").value = "";
+    document.getElementById("newBookName").value = "";
+    document.getElementById("newSerialNumber").value = "";
+    document.getElementById("newIssueDate").value = "";
+    document.getElementById("newReturnDate").value = "";
+    document.getElementById("newStatus").value = "";
+  }
 </script>
 
 </body>
 </html>
-
