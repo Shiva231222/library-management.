@@ -1,6 +1,6 @@
 body {
   font-family: 'Arial', sans-serif;
-  background-color: #1E90FF; /* Blue ocean color */
+ background-image: url('images/abrpg.jpg');
   min-height: 100vh;
   padding: 20px;
 }
