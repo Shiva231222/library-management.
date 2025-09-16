@@ -1,4 +1,51 @@
-<div class="student-details-section" id="studentDetailsSection" style="display:none; margin-top:20px;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Book Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+
+    .student-details-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 80%;
+      margin: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #007bff;
+      color: #fff;
+    }
+
+    select {
+      padding: 6px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="student-details-section" id="studentDetailsSection">
   <h2>Student Book Details</h2>
   
   <div>
@@ -23,3 +70,52 @@
     </tbody>
   </table>
 </div>
+
+<script>
+  // Example student data
+  const studentsData = {
+    "John Doe": [
+      { book: "Mathematics", serial: "B101", issue: "2025-09-10", return: "2025-09-20", status: "Returned" },
+      { book: "Science", serial: "B102", issue: "2025-09-12", return: "2025-09-22", status: "Issued" }
+    ],
+    "Jane Smith": [
+      { book: "English", serial: "B201", issue: "2025-09-08", return: "2025-09-18", status: "Returned" }
+    ],
+    "Rahul Kumar": [
+      { book: "Physics", serial: "B301", issue: "2025-09-15", return: "2025-09-25", status: "Issued" }
+    ]
+  };
+
+  // Populate dropdown
+  const studentSelect = document.getElementById("studentSelect");
+  for (const studentName in studentsData) {
+    const option = document.createElement("option");
+    option.value = studentName;
+    option.textContent = studentName;
+    studentSelect.appendChild(option);
+  }
+
+  // Show student records
+  function showStudentDetails(studentName) {
+    const tbody = document.getElementById("studentRecordsBody");
+    tbody.innerHTML = ""; // clear old records
+
+    if (studentName && studentsData[studentName]) {
+      studentsData[studentName].forEach(record => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${record.book}</td>
+          <td>${record.serial}</td>
+          <td>${record.issue}</td>
+          <td>${record.return}</td>
+          <td>${record.status}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+  }
+</script>
+
+</body>
+</html>
+
