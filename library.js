@@ -1,9 +1,7 @@
-app.post('/api/issue-book', async (req, res) => {
-  const { studentName, serialNumber, issueDate, returnDate } = req.body;
-  // insert into issued_books table
-  await db.query(
-    'INSERT INTO issued_books (studentName, serialNumber, issueDate, returnDate, status) VALUES (?, ?, ?, ?, "issued")',
-    [studentName, serialNumber, issueDate, returnDate]
-  );
-  res.json({ success: true });
-});
+const libraryBooks = [
+  { serial: "B101", name: "Mathematics" },
+  { serial: "B102", name: "Science" },
+  { serial: "B103", name: "Physics" },
+  { serial: "B104", name: "English" },
+  { serial: "B105", name: "Chemistry" }
+];
