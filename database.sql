@@ -57,9 +57,9 @@ VALUES
 -- ➕ Add Students
 INSERT INTO Students (student_name, bca_department)
 VALUES 
-('Ravi Kumar', 'BCA'),
-('Priya Singh', 'BCA'),
-('Aman Verma', 'BCA');
+('Shubham Kumar', 'BCA'),
+('Shiva Nand', 'BCA'),
+('Neeraj Singh', 'BCA');
 
 -- ➕ Add Book Issue Records
 INSERT INTO Book_Issues (student_id, book_serial_no, issue_date, return_date)
@@ -91,7 +91,7 @@ WHERE book_serial_no = 'B101';
 
 -- ✏️ Update Student Details
 UPDATE Students
-SET student_name = 'Ravi K. Yadav'
+SET student_name = 'Deepak Singh'
 WHERE student_id = 1;
 
 -- ✏️ Update Book Issue Record (Mark as Returned)
